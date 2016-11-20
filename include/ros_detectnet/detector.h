@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef DETECTNET_SRC_DETECTOR_H_
-#define DETECTNET_SRC_DETECTOR_H_
+#ifndef ROS_DETECTNET_DETECTOR_H
+#define ROS_DETECTNET_DETECTOR_H
 
 #include <vector>
 #include <string>
@@ -31,7 +31,10 @@
 #include <opencv2/core/core.hpp>
 #include <sensor_msgs/RegionOfInterest.h>
 
-class Detector {
+namespace detectnet
+{
+class Detector
+{
  public:
   Detector(const std::string& model_file, const std::string& trained_file);
   std::vector<sensor_msgs::RegionOfInterest> detect(const cv::Mat& img);
@@ -46,5 +49,6 @@ class Detector {
   cv::Size input_geometry_;
   int num_channels_;
 };
+}  // namespace detectnet
 
-#endif
+#endif  // ROS_DETECTNET_DETECTOR_H

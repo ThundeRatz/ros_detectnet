@@ -33,28 +33,35 @@
 
 #include "ros_detectnet/detector.h"
 
-namespace {
-  Detector* detector;
-  ros::Publisher publisher;
+namespace
+{
+detectnet::Detector* detector;
+ros::Publisher publisher;
 
-  void publishRegions(const std::vector<sensor_msgs::RegionOfInterest>& predictions)  {
-    for (auto& roi : predictions)
-      publisher.publish(roi);
-  }
+void publishRegions(const std::vector<sensor_msgs::RegionOfInterest>& predictions)
+{
+  for (auto& roi : predictions)
+    publisher.publish(roi);
+}
 
-  void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
-    cv_bridge::CvImageConstPtr imagePtr;
-    try {
-      imagePtr = cv_bridge::toCvShare(msg, "bgr8");
-    } catch (cv_bridge::Exception& e) {
-      ROS_ERROR("Could not convert from '%s' to 'bgr8'.", msg->encoding.c_str());
-    }
-    const cv::Mat& image = imagePtr->image;
-    publishRegions(detector->detect(image));
+void imageCallback(const sensor_msgs::ImageConstPtr& msg)
+{
+  cv_bridge::CvImageConstPtr imagePtr;
+  try
+  {
+    imagePtr = cv_bridge::toCvShare(msg, "bgr8");
   }
+  catch (cv_bridge::Exception& e)
+  {
+    ROS_ERROR("Could not convert from '%s' to 'bgr8'.", msg->encoding.c_str());
+  }
+  const cv::Mat& image = imagePtr->image;
+  publishRegions(detector->detect(image));
+}
 }  // namespace
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   ros::init(argc, argv, "detectnet_node");
 
   const std::string NET_DATA = ros::package::getPath("detectnet") + "/data/";
@@ -62,7 +69,7 @@ int main(int argc, char **argv) {
 
   ros::NodeHandle node;
   image_transport::ImageTransport transport(node);
-  transport.subscribe("image", 1, imageCallback);
+  transport.subscribe("/image", 1, imageCallback);
   publisher = node.advertise<sensor_msgs::RegionOfInterest>("detectnet", 100);
   ros::spin();
 

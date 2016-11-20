@@ -11,6 +11,7 @@ find_package(CUDA REQUIRED)
 find_package(OpenCV REQUIRED)
 
 roslint_cpp()
+roslint_add_test()
 
 ################################################
 ## Declare ROS messages, services and actions ##

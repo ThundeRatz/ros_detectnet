@@ -33,7 +33,10 @@
 #include <string>
 #include <vector>
 
-Detector::Detector(const std::string& model_file, const std::string& trained_file) {
+namespace detectnet
+{
+Detector::Detector(const std::string& model_file, const std::string& trained_file)
+{
 #ifdef CPU_ONLY
   caffe::Caffe::set_mode(caffe::Caffe::CPU);
 #else
@@ -49,11 +52,13 @@ Detector::Detector(const std::string& model_file, const std::string& trained_fil
   input_geometry_ = cv::Size(input_layer->width(), input_layer->height());
 }
 
-std::vector<sensor_msgs::RegionOfInterest> Detector::detect(const cv::Mat& img) {
+std::vector<sensor_msgs::RegionOfInterest> Detector::detect(const cv::Mat& img)
+{
   std::vector<float> output = forward(img);
   std::vector<sensor_msgs::RegionOfInterest> regions;
 
-  for (auto n = output.begin(); n != output.end(); n += 5) {
+  for (auto n = output.begin(); n != output.end(); n += 5)
+  {
     // Output layer documentation:
     // https://github.com/NVIDIA/caffe/blob/caffe-0.15/python/caffe/layers/detectnet/clustering.py#L81
     float x_left = *n;
@@ -72,7 +77,8 @@ std::vector<sensor_msgs::RegionOfInterest> Detector::detect(const cv::Mat& img) 
   return regions;
 }
 
-std::vector<float> Detector::forward(const cv::Mat& img) {
+std::vector<float> Detector::forward(const cv::Mat& img)
+{
   caffe::Blob<float>* input_layer = net_->input_blobs()[0];
   input_layer->Reshape(1, num_channels_, input_geometry_.height, input_geometry_.width);
 
@@ -97,20 +103,23 @@ std::vector<float> Detector::forward(const cv::Mat& img) {
  * don't need to rely on cudaMemcpy2D. The last preprocessing
  * operation will write the separate channels directly to the input
  * layer. */
-void Detector::wrapInputLayer(std::vector<cv::Mat>* input_channels) {
+void Detector::wrapInputLayer(std::vector<cv::Mat>* input_channels)
+{
   caffe::Blob<float>* input_layer = net_->input_blobs()[0];
 
   int width = input_layer->width();
   int height = input_layer->height();
   float* input_data = input_layer->mutable_cpu_data();
-  for (int i = 0; i < input_layer->channels(); ++i) {
+  for (int i = 0; i < input_layer->channels(); ++i)
+  {
     cv::Mat channel(height, width, CV_32FC1, input_data);
     input_channels->push_back(channel);
     input_data += width * height;
   }
 }
 
-void Detector::preprocess(const cv::Mat& img, std::vector<cv::Mat>* input_channels) {
+void Detector::preprocess(const cv::Mat& img, std::vector<cv::Mat>* input_channels)
+{
   cv::Mat sample;
   if (img.channels() == 3 && num_channels_ == 1)
     cv::cvtColor(img, sample, CV_BGR2GRAY);
@@ -140,3 +149,4 @@ void Detector::preprocess(const cv::Mat& img, std::vector<cv::Mat>* input_channe
    * objects in input_channels. */
   cv::split(sample_float, *input_channels);
 }
+}  // namespace detectnet
